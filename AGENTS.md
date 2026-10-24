@@ -15,3 +15,6 @@ refuse ambiguous output destinations. Run focused tests, report exact results
 and unresolved limitations. Do not merge, deploy, delete branches, alter agent
 policy, switch billing methods or start another assignment. Independent review
 and human acceptance remain separate from a successful developer run.
+
+Headless CLI work must preserve the existing no-argument Tkinter GUI entrypoint
+and Windows desktop workflow unless a separate assignment explicitly changes it.
