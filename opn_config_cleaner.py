@@ -220,7 +220,7 @@ def run_cli(argv=None):
             with report_path.open("x", encoding="utf-8") as report_file:
                 json.dump(stats, report_file, sort_keys=True)
                 report_file.write("\n")
-    except ET.ParseError:
+    except (ET.ParseError, LookupError):
         print("Error: input is not valid XML.", file=sys.stderr)
         return 1
     except (OSError, ValueError) as exc:

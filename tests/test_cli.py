@@ -93,6 +93,30 @@ class CliTests(unittest.TestCase):
         self.assertIn("aliases the input", result.stderr)
         self.assertEqual(self.input_path.read_bytes(), original_bytes)
 
+    def test_refuses_hardlink_output_alias_and_preserves_original(self):
+        output_path = self.directory / "hardlink.xml"
+        os.link(self.input_path, output_path)
+        original_bytes = self.input_path.read_bytes()
+
+        result = self.run_cli("--input", self.input_path, "--output", output_path)
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("aliases the input", result.stderr)
+        self.assertEqual(self.input_path.read_bytes(), original_bytes)
+        self.assertEqual(output_path.read_bytes(), original_bytes)
+
+    def test_refuses_symlink_output_alias_and_preserves_original(self):
+        output_path = self.directory / "symlink.xml"
+        output_path.symlink_to(self.input_path)
+        original_bytes = self.input_path.read_bytes()
+
+        result = self.run_cli("--input", self.input_path, "--output", output_path)
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("aliases the input", result.stderr)
+        self.assertEqual(self.input_path.read_bytes(), original_bytes)
+        self.assertEqual(output_path.read_bytes(), original_bytes)
+
     def test_refuses_existing_destinations_without_overwriting(self):
         output_path = self.directory / "existing.xml"
         output_path.write_bytes(b"keep output")
@@ -141,6 +165,21 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("not valid XML", result.stderr)
         self.assertNotIn("synthetic-secret", result.stderr)
+        self.assertFalse(output_path.exists())
+
+    def test_unknown_xml_encoding_has_safe_error_and_creates_no_output(self):
+        encoding_name = "attacker-controlled-encoding"
+        self.input_path.write_bytes(
+            f'<?xml version="1.0" encoding="{encoding_name}"?><opnsense/>'.encode("ascii")
+        )
+        output_path = self.directory / "sanitized.xml"
+
+        result = self.run_cli("--input", self.input_path, "--output", output_path)
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Error: input is not valid XML.", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertNotIn(encoding_name, result.stderr)
         self.assertFalse(output_path.exists())
 
     def test_missing_input_has_nonzero_status_and_creates_no_output(self):
