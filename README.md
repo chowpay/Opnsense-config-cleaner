@@ -31,6 +31,18 @@ From the project directory:
 python .\opn_config_cleaner.py
 ```
 
+With no arguments, this opens the Tkinter desktop application. To run without a
+display, provide both an input file and a new output path:
+
+```powershell
+python .\opn_config_cleaner.py --input .\config.xml --output .\config-sanitized.xml --report .\sanitize-counts.json --strip-audit-usernames
+```
+
+`--report` is optional and writes only the sanitizer's numeric field counts as
+JSON. The input is left unchanged. The command refuses destinations that alias
+the input or each other, and refuses to overwrite existing output or report
+files.
+
 If you are using the project's virtual environment in PyCharm, make sure it is active first.
 
 ## Build the Windows EXE
